@@ -21,8 +21,8 @@ const registration=async(req,res)=>{
         last_name=last_name[0].toUpperCase()+last_name.slice(1);
         const salt = bcrypt.genSaltSync(saltRounds);
         const hash = bcrypt.hashSync(password, salt);
-        const instance = new userModel({...req.body,first_name,last_name, password: hash });
-        await instance.save()
+        const user = new userModel({...req.body,first_name,last_name, password: hash });
+        await user.save()
           .then((user) => {
             var token = jwt.sign(user.toJSON(),process.env.JWT_SECRET,{ expiresIn: 60*60*24*7 });
             return res.status(200).json({ message: "User registration Successfull.", user:user.toJSON() , auth:token });
@@ -37,7 +37,7 @@ const registration=async(req,res)=>{
 
 const login =async(req,res)=>{
     const request=req.body;
-    const user=await userModel.findOne({email:request.email}).exec();
+    const user=await userModel.findOne({phone:request.phone}).exec();
     if(user==null){
         return res.status(401).json({message:"Please sign up before login",status:false});
     }
@@ -50,6 +50,7 @@ const login =async(req,res)=>{
     }
 }
 const dashboard=async(req,res)=>{
+    console.log(req.socket.remoteAddress);
     return res.status(200).send({message:"At dashboard after auth"});
 }
 module.exports={

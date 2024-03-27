@@ -8,20 +8,24 @@ const userSchema=new mongoose.Schema({
     },
     email:{
         type:String,
-        unique:true,
+        lowercase: true,
         required:true
     },
     phone:{
         type:String,
+        unique:true,
         required:true,
     },
     password:{
         type:String,
         required:true,
-    }
+    },
     
 },{timestamps:true}).plugin(mongoose_delete, { deletedAt : true });
 
+userSchema.path('first_name').set(function(v) {
+    return capitalize(v);
+  });
 
 userSchema.set('toJSON', {
     transform: function (doc, ret) {
