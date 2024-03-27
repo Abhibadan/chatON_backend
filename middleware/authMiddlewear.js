@@ -15,6 +15,16 @@ const authMiddlewear=async (req,res,next)=>{
 
 };
 
+const socketMiddlewear = (socket, next) => {
+  const user_id=socket.handshake.query.user_id;
+  const token = socket.handshake.auth.token;
+  var decoded = jwt.verify(token,process.env.JWT_SECRET);
+  if(user_id==decoded._id){
+    next();
+  }else{
+    return next(new Error('Authentication failed,Please login again'));
+  }
+};
 module.exports={
-    authMiddlewear,
+    authMiddlewear,socketMiddlewear
 }

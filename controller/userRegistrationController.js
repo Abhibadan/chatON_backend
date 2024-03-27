@@ -34,6 +34,7 @@ const registration=async(req,res)=>{
         return res.status(401).json({message:"Something went wrong! Please try again",error});
     }
 }
+
 const login =async(req,res)=>{
     const request=req.body;
     const user=await userModel.findOne({email:request.email}).exec();

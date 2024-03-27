@@ -4,9 +4,30 @@ const http= require('http');
 const cors = require('cors');
 const {Server}=require('socket.io');
 const userRegistration=require('./controller/userRegistrationController');
-const {authMiddlewear} = require('./middlewear/authMiddlewear');
+const {authMiddlewear,socketMiddlewear} = require('./middleware/authMiddlewear');
+const {online_user,make_online,make_offline}= require('./controller/socketController');
+const { register } = require('module');
 
 const app=express();
+app.use(express.json());
+app.use(cors());
+
+
+
+
+
+
+app.post('/registration',userRegistration.registration);
+app.post('/login',userRegistration.login);
+
+const router=express.Router();
+router.use(authMiddlewear);
+router.get('/',userRegistration.dashboard);
+
+
+app.use('/auth',router);
+app.listen(5000);
+
 const server=http.createServer(app);
 const io=new Server(server,{
     cors: {
@@ -14,35 +35,22 @@ const io=new Server(server,{
       credentials: true
     }
   });
-app.use(express.json());
-app.use(cors());
-const router=express.Router();
-router.use(authMiddlewear);
-
-
-app.post('/registration',userRegistration.registration);
-app.post('/login',userRegistration.login);
-
-router.get('/',userRegistration.dashboard);
-
-
-app.use('/auth',router);
-app.listen(5000);
-
+io.use(socketMiddlewear);
 io.on('connection',(socket)=>{
-    // console.log(socket.id);
-
+    make_online(socket.handshake.query.user_id,socket.id);
+    io.emit('join_user',online_user);
     socket.on('chat message', (message) => {
-        console.log(message);
-        io.emit('recived message', message); // Broadcast the message to all clients
+        io.emit('recived message', message); 
     });
-    socket.on("disconnect",()=>{
-        console.log("disconnect");
+    socket.on('offline',(user_id)=>{
+      make_offline(user_id);
     })
+    socket.on("disconnect",(msg)=>{
+      console.log(msg);
+
+    });
 })
-io.on('chat message',(socket)=>{
-    console.log(socket)
-})
+
 server.listen(5050, () => {
     console.log(`Server is running on port`);
   });
