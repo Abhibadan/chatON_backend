@@ -37,7 +37,7 @@ const registration=async(req,res)=>{
 
 const login =async(req,res)=>{
     const request=req.body;
-    const user=await userModel.findOne({phone:request.phone}).exec();
+    const user=await userModel.findOne({email:request.email}).exec();
     if(user==null){
         return res.status(401).json({message:"Please sign up before login",status:false});
     }
