@@ -46,12 +46,13 @@ io.on('connection',(socket)=>{
             io.to(element.socket_id).emit('recived message', message); 
           });
         });
-          
-        
     });
+
+
     socket.on('offline',(data)=>{
       make_offline(data);
     })
+    
     socket.on("disconnect",(msg)=>{
       console.log(msg);
 
