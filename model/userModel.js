@@ -23,9 +23,9 @@ const userSchema=new mongoose.Schema({
     
 },{timestamps:true}).plugin(mongoose_delete, { deletedAt : true });
 
-userSchema.path('first_name').set(function(v) {
-    return capitalize(v);
-  });
+// userSchema.path('first_name').set(function(v) {
+//     return capitalize(v);
+//   });
 
 userSchema.set('toJSON', {
     transform: function (doc, ret) {

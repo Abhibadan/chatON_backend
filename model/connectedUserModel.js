@@ -9,6 +9,7 @@ const connectedUserSchema=new mongoose.Schema({
     },
     sockets:{
         type:[socketSchema],
+        default:[],
     },
     
 },{timestamps:true});

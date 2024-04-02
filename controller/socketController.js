@@ -1,27 +1,19 @@
 const {userModel}=require('../model/userModel');
 const {connectedUserModel}=require('../model/connectedUserModel');
 const make_online=async (user_id,ip,socket_id)=>{
-    const user=await userModel.findById(user_id);
-    const connectionDetials=await connectedUserModel.findOne({user_id:user._id});
-    if(connectionDetials!==null){
-        let currentConnection=connectionDetials.sockets;
-        let flag=false;
-        for (const con in currentConnection) {
-            if(currentConnection[con].current_ip===ip){
-                currentConnection[con].socket_id=socket_id;
-                flag=true;
-                break;
-            }
-        }
-        if(!flag){
-            currentConnection=[...connectionDetials.sockets.slice(-4),{current_ip:ip,socket_id:socket_id}];
-        }
-        await connectedUserModel.findOneAndUpdate({user_id:user._id},{sockets:currentConnection});
+    const connectionDetials=await connectedUserModel.findOne({user_id}, { sockets: { $elemMatch: { current_ip: ip } } });
 
-    }else{
-        let newConnection= new connectedUserModel({user_id:user._id,sockets:[{current_ip:ip,socket_id:socket_id}]});
-        await newConnection.save();
-    }
+        if(connectionDetials.sockets.length==0){
+            await connectedUserModel.updateOne({user_id},{$push:{sockets:{current_ip:ip,socket_id:socket_id}}});
+        }else{
+            await connectedUserModel.updateOne({user_id},
+                { $set: { "sockets.$[elem].socket_id": socket_id } },
+                { arrayFilters: [ { "elem.current_ip": ip} ] });
+        }
+        const checkConnection=await connectedUserModel.findOne({user_id});
+        if(checkConnection.length>5){
+            await connectedUserModel.updateOne({user_id},{$pop:{sockets:-1}});
+        }
 }
 const make_offline=async(connection)=>{
     const connectionDetials=await connectedUserModel.findOne({user_id:connection.user_id});
