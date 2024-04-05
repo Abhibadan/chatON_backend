@@ -26,7 +26,9 @@ app.get('/',userRegistration.dashboard);
 
 
 app.use('/auth',router);
-app.listen(5000);
+app.listen(5000,()=>{
+  console.log("Connection success");
+});
 
 const server=http.createServer(app);
 const io=new Server(server,{
@@ -60,5 +62,5 @@ io.on('connection',(socket)=>{
 })
 
 server.listen(5050, () => {
-    console.log(`Server is running on port`);
+    console.log(`Server is running`);
   });
