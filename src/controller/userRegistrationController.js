@@ -1,5 +1,5 @@
 const {userModel}=require('../model/userModel');
-const {connectedUserModel}=require('../model/connectedUserModel');
+const {connectedUserModel}=require('../../model/connectedUserModel');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const saltRounds = 12;

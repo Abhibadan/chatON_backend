@@ -7,7 +7,8 @@ const userRegistration=require('./controller/userRegistrationController');
 const {authMiddlewear,socketMiddlewear} = require('./middleware/authMiddlewear');
 const {make_online,make_offline,connection_details}= require('./controller/socketController');
 const { register } = require('module');
-
+const os=require('os');
+const { log } = require('console');
 const app=express();
 app.use(express.json());
 app.use(cors());
@@ -19,7 +20,6 @@ app.use(cors());
 
 app.post('/registration',userRegistration.registration);
 app.post('/login',userRegistration.login);
-
 const router=express.Router();
 router.use(authMiddlewear);
 app.get('/',userRegistration.dashboard);
