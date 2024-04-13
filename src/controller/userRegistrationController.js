@@ -1,4 +1,5 @@
 const {userModel}=require('../model/userModel');
+const {connectedUserModel}=require('../model/connectedUserModel');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const saltRounds = 12;
@@ -21,9 +22,11 @@ const registration=async(req,res)=>{
         last_name=last_name[0].toUpperCase()+last_name.slice(1);
         const salt = bcrypt.genSaltSync(saltRounds);
         const hash = bcrypt.hashSync(password, salt);
-        const instance = new userModel({...req.body,first_name,last_name, password: hash });
-        await instance.save()
-          .then((user) => {
+        const user = new userModel({...req.body,first_name,last_name, password: hash ,});
+        await user.save()
+          .then(async (user) => {
+            let newConnection= new connectedUserModel({user_id:user._id});
+            await newConnection.save();
             var token = jwt.sign(user.toJSON(),process.env.JWT_SECRET,{ expiresIn: 60*60*24*7 });
             return res.status(200).json({ message: "User registration Successfull.", user:user.toJSON() , auth:token });
           })
@@ -50,6 +53,7 @@ const login =async(req,res)=>{
     }
 }
 const dashboard=async(req,res)=>{
+    console.log(req.socket.remoteAddress);
     return res.status(200).send({message:"At dashboard after auth"});
 }
 module.exports={

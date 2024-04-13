@@ -4,7 +4,7 @@ const authMiddlewear=async (req,res,next)=>{
     const authorization= req.headers.authorization;
     const token= authorization.replace("Bearer ",'');
     var decoded = jwt.verify(token,process.env.JWT_SECRET);
-    const count=await userModel.countDocuments({'email':decoded.email});
+    const count=await userModel.countDocuments({'phone':decoded.phone});
     if(count==1){
         next();
     }else if(count>1){
