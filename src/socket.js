@@ -15,7 +15,7 @@ const io=new Server(server,{
 
 io.use(socketMiddlewear);
 io.on('connection',(socket)=>{
-    console.log(socket);
+    // console.log(socket);
     make_online(socket.handshake.query.user_id,socket.handshake.address,socket.id);
     // io.emit('join_user',online_user);
     socket.on('chat message',(message) => {

@@ -4,9 +4,9 @@ const app=require('./app');
 const server=require('./socket');
 
 app.listen(5000,()=>{
-  console.log("Connection success");
+  console.log("Http Connection success");
 });
 
 server.listen(5050, () => {
-  console.log(`Server is running`);
+  console.log(`Socket Connection success`);
 });

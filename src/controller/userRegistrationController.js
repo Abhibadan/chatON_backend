@@ -52,12 +52,7 @@ const login =async(req,res)=>{
         return res.status(401).json({message:"Please enter valid password",status:false})
     }
 }
-const dashboard=async(req,res)=>{
-    console.log(req.socket.remoteAddress);
-    return res.status(200).send({message:"At dashboard after auth"});
-}
 module.exports={
     registration,
-    login,
-    dashboard
+    login
 }
