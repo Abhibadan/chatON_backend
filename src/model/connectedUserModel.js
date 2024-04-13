@@ -1,4 +1,4 @@
-const {mongoose}=require('../connection/dbConnect');
+const mongoose =require('mongoose');
 const socketSchema = new mongoose.Schema({
     current_ip: String,
     socket_id: String
@@ -6,6 +6,8 @@ const socketSchema = new mongoose.Schema({
 const connectedUserSchema=new mongoose.Schema({
     user_id:{
         type:mongoose.Schema.ObjectId,
+        ref:'user',
+        required:true
     },
     sockets:{
         type:[socketSchema],

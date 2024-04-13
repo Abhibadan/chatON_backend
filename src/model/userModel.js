@@ -1,4 +1,5 @@
-const {mongoose,mongoose_delete}=require('../connection/dbConnect');
+const mongoose=require('mongoose');
+const mongoose_delete=require('mongoose-delete');
 const userSchema=new mongoose.Schema({
     first_name:{
         type:String
