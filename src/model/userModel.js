@@ -1,5 +1,17 @@
 const mongoose=require('mongoose');
 const mongoose_delete=require('mongoose-delete');
+const friendSchema=new mongoose.Schema({
+    user_id:{
+        type: mongoose.Schema.ObjectId,
+        ref:'user',
+        required:true,
+    },
+    status:{
+        type:String,
+        enum:['requested','accepted','blocked'],
+        default:'requested',
+    }
+},{_id:false});
 const userSchema=new mongoose.Schema({
     first_name:{
         type:String
@@ -21,6 +33,10 @@ const userSchema=new mongoose.Schema({
         type:String,
         required:true,
     },
+    friendList:{
+        type:["friendSchema"],
+        default:[],
+    }
     
 },{timestamps:true}).plugin(mongoose_delete, { deletedAt : true });
 
