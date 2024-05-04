@@ -8,7 +8,7 @@ const friendSchema=new mongoose.Schema({
     },
     status:{
         type:String,
-        enum:['requested','accepted','blocked'],
+        enum:['connected','requested','accepted','blocked'],
         default:'requested',
     }
 },{_id:false});

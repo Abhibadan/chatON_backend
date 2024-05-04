@@ -31,6 +31,10 @@ io.on('connection',(socket)=>{
       make_offline(data);
     })
 
+    socket.on("error", (err) => {
+      console.log("error");
+      console.log(err.message); // prints the message associated with the error
+    });
     socket.on("disconnect",(msg)=>{
       console.log(msg);
 
