@@ -11,6 +11,7 @@ const authMiddlewear=async (req,res,next)=>{
     }
     const count=await userModel.countDocuments({'phone':decoded.phone});
     if(count==1){
+        req.user=await userModel.findOne({'phone':decoded.phone}).exec();
         next();
     }else if(count>1){
         return res.status(403).json({message:"Duplicate record present"});

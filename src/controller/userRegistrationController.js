@@ -2,6 +2,7 @@ const {userModel}=require('../model/userModel');
 const {connectedUserModel}=require('../model/connectedUserModel');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const validator = require('validator');
 const saltRounds = 12;
 
 const registration=async(req,res)=>{ 
@@ -40,6 +41,15 @@ const registration=async(req,res)=>{
 
 const login =async(req,res)=>{
     const request=req.body;
+    if(request.email==undefined ){    
+        return res.status(422).json({ message: "Please provide Email"});
+    }else if(request.email==undefined){
+        return res.status(422).json({ message: "Please provide Password"});
+    }else if(validator.isEmpty(request.email) || validator.isEmail(request.email)==false){
+        return res.status(422).json({ message: "Please provide valid Email"});
+    }else if(validator.isEmpty(request.password)){
+        return res.status(422).json({ message: "Please provide valid Password"});
+    }
     const user=await userModel.findOne({email:request.email}).exec();
     if(user==null){
         return res.status(401).json({message:"Please sign up before login",status:false});

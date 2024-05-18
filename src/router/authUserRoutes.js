@@ -5,6 +5,8 @@ const friendController=require("../controller/friendController");
 authUserRouter.use(authMiddlewear);
 authUserRouter.get('/',userController.dashboard);
 authUserRouter.get('/alluser',userController.alluser);
-authUserRouter.post('/send-friend-request/:id',friendController.sendFriendRequest);
+authUserRouter.post('/send-friend-request',friendController.sendFriendRequest);
+authUserRouter.post('/handle-friend-request',friendController.handleFriendRequest);
+
 
 module.exports=authUserRouter;
