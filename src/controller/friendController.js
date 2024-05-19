@@ -2,7 +2,8 @@
 const { ConnectionStates } = require("mongoose");
 const {userModel}=require("../model/userModel");
 const { ObjectId } = require('mongodb');
-var validator = require('validator');
+const validator = require('validator');
+const {decrypt} = require("../helper/asyncDecrypt");
 
 /**
  * Handles the logic for sending a friend request to another user.
@@ -109,31 +110,40 @@ const sendFriendRequest = async (req, res) => {
     return res.status(500).json({ message: error.message });
   }
 };
+/**
+ * Handles a friend request by updating the status of the friendship between the current user and the requested friend.
+ *
+ * @param {Object} req - The HTTP request object.
+ * @param {Object} req.user - The current authenticated user.
+ * @param {Object} req.body.request - The encrypted friend request details.
+ * @returns {Promise<Object>} - A JSON response with a success message or an error message.
+ */
 const handleFriendRequest = async (req, res) => {
   const user = req.user;
-  console.log(user,"user")
-  const { friend_id,handle } = req.body;
-  if (friend_id == undefined) {
-    return res
-      .status(422)
-      .json({ message: "Please provide requested friend details" });
-  }
+  const { request } = req.body;
   try {
+    const { friend_id, handle } = JSON.parse(decrypt(request));
+    if (friend_id == undefined) {
+      return res
+        .status(422)
+        .json({ message: "Please provide requested friend details" });
+    } else if (handle == undefined) {
+      return res.status(422).json({ message: "Please provide handle" });
+    }
     let handle_user = handle;
     let handle_friend;
-    if(handle_user=='accepted'){
-      handle_friend=handle_user;
-    }else if(handle_user=='blocked'){
-      handle_friend='blocked_by_friend';
-    }else if(handle_user=='connected'){
-      handle_friend=handle_user;
+    if (handle_user == "accepted") {
+      handle_friend = handle_user;
+    } else if (handle_user == "blocked") {
+      handle_friend = "blocked_by_friend";
+    } else if (handle_user == "connected") {
+      handle_friend = handle_user;
     }
-    console.log(handle_friend,"  ",handle_user)
     const friend = await userModel
       .updateOne(
         { _id: friend_id },
-        { $set: { "friendList.$[element].status" : handle_friend } },
-        { arrayFilters: [ { "element.user_id":user._id } ] }
+        { $set: { "friendList.$[element].status": handle_friend } },
+        { arrayFilters: [{ "element.user_id": user._id }] }
       )
       .exec()
       .then((res) => {
@@ -145,8 +155,12 @@ const handleFriendRequest = async (req, res) => {
     const user_updated = await userModel
       .updateOne(
         { _id: user._id },
-        { $set: { "friendList.$[element].status" : handle_user } },
-        { arrayFilters: [ { "element.user_id":ObjectId.createFromHexString(friend_id) } ] }
+        { $set: { "friendList.$[element].status": handle_user } },
+        {
+          arrayFilters: [
+            { "element.user_id": ObjectId.createFromHexString(friend_id) },
+          ],
+        }
       )
       .exec()
       .then((res) => {
@@ -158,9 +172,8 @@ const handleFriendRequest = async (req, res) => {
     res.status(200).json({ message: "Frined status updated successfully" });
   } catch (error) {
     return res.status(500).json({ message: error.message });
-    
   }
-}
+};
 module.exports={
     sendFriendRequest,
     handleFriendRequest
