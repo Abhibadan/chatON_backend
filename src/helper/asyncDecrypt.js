@@ -15,7 +15,6 @@ const crypto = require('crypto');
 
 const decrypt=(encryptedData)=>{
     try{
-        console.log(encryptedData," encryptedData");
         const privateKey=process.env.PRIVATE_KEY.replace(/\\n/g, '\n');
         const buffer = Buffer.from(encryptedData, 'base64');
         const decrypted = crypto.privateDecrypt({

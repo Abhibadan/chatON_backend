@@ -138,6 +138,32 @@ const handleFriendRequest = async (req, res) => {
       handle_friend = "blocked_by_friend";
     } else if (handle_user == "connected") {
       handle_friend = handle_user;
+    } else if (handle_user == "rejected") {
+      const friend = await userModel
+        .updateOne(
+          { _id: friend_id },
+          { $pull: { friendList: { user_id: user._id } } }
+        )
+        .exec()
+        .then((res) => {
+          return res;
+        })
+        .catch((error) => {
+          throw new Error("Friend not found");
+        });
+      const user_updated = await userModel
+        .updateOne(
+          { _id: user._id },
+          { $pull: { friendList: { user_id: ObjectId.createFromHexString(friend_id) } } }
+        )
+        .exec()
+        .then((res) => {
+          return res;
+        })
+        .catch((error) => {
+          throw new Error("User not found");
+        });
+      return res.status(200).json({ message: "Removed From frined list" });
     }
     const friend = await userModel
       .updateOne(
@@ -169,7 +195,9 @@ const handleFriendRequest = async (req, res) => {
       .catch((error) => {
         throw new Error("User not found");
       });
-    res.status(200).json({ message: "Frined status updated successfully" });
+    return res
+      .status(200)
+      .json({ message: "Frined status updated successfully" });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
