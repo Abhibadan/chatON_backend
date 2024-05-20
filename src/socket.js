@@ -18,8 +18,8 @@ io.on('connection',(socket)=>{
     // console.log(socket);
     make_online(socket.handshake.query.user_id,socket.handshake.address,socket.id);
     // io.emit('join_user',online_user);
-    socket.on('chat message',(message) => {
-        connection_details().then((response)=>{
+    socket.on('chat message',(target_user,message) => {
+        connection_details(target_user).then((response)=>{
           response.sockets.forEach((element) => {
             io.to(element.socket_id).emit('recived message', message); 
           });

@@ -17,8 +17,8 @@ const make_online=async (user_id,ip,socket_id)=>{
 const make_offline=async(connection)=>{
     await connectedUserModel.updateOne({user_id:connection.user_id},{$pull:{sockets:{socket_id:connection.socket_id}}});
 }
-const connection_details=async()=>{
-    const connectionDetials=await connectedUserModel.findOne({user_id:'65e33c56ca2a3030c32a766a'});
+const connection_details=async(target_user)=>{
+    const connectionDetials=await connectedUserModel.findOne({user_id:target_user});
     return connectionDetials;
 }
 module.exports={
