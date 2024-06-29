@@ -21,6 +21,7 @@ const connection_details=async(target_user)=>{
     const connectionDetials=await connectedUserModel.findOne({user_id:target_user});
     return connectionDetials;
 }
+
 module.exports={
     make_online,
     make_offline,

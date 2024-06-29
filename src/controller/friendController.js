@@ -217,8 +217,8 @@ const getConnectionDetails=async(req,res)=>{
   }catch(error){
       return res.status(404).json({message:error.message,success:false});
   }
-  
 }
+
 module.exports={
     sendFriendRequest,
     handleFriendRequest,

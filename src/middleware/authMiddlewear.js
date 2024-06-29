@@ -2,6 +2,9 @@ const jwt = require('jsonwebtoken');
 const {userModel}=require('../model/userModel');
 const authMiddlewear=async (req,res,next)=>{
     const authorization= req.headers.authorization;
+    if(!authorization){
+        return res.status(401).json({message:"Unauthorized user"});
+    }
     const token= authorization.replace("Bearer ",'');
     try{
       var decoded = jwt.verify(token,process.env.JWT_SECRET);

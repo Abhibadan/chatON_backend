@@ -8,6 +8,6 @@ authUserRouter.get('/alluser',userController.alluser);
 authUserRouter.post('/send-friend-request',friendController.sendFriendRequest);
 authUserRouter.post('/handle-friend-request',friendController.handleFriendRequest);
 authUserRouter.get('/get-connection-details',friendController.getConnectionDetails);
-
+authUserRouter.post('/test',userController.sendMessage);
 
 module.exports=authUserRouter;
