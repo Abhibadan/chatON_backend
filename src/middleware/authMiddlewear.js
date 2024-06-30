@@ -30,6 +30,7 @@ const socketMiddlewear = (socket, next) => {
   try{
     var decoded = jwt.verify(token,process.env.JWT_SECRET);
     if(user_id==decoded._id){
+      socket.user=decoded;
       next();
     }else{
       return next(new Error('Authentication failed,Please login again'));

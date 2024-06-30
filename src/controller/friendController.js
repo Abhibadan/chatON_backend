@@ -203,7 +203,7 @@ const handleFriendRequest = async (req, res) => {
   }
 };
 const getConnectionDetails=async(req,res)=>{
-  const user_id=req.query.id;
+  const user_id=req.user._id;
   try{
     const userDetails=await userModel.findById(user_id).exec()
     .then((res)=>{
