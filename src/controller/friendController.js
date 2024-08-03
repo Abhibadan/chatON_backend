@@ -218,11 +218,12 @@ const oldMessages=async(req,res)=>{
       return res.end();
   }
   chat_of_user.forEach((messageGroup)=>{
-    counter+=1;
+    counter+=0;
     messageGroup.messages.forEach((message)=>{
       timeout=setTimeout(()=>{
           res.write(`data: ${JSON.stringify(message)}\n\n`);
-      },counter*1000);
+      },counter*10);
+      counter++;
     });
   })
   
