@@ -222,8 +222,7 @@ const oldMessages=async(req,res)=>{
     messageGroup.messages.forEach((message)=>{
       timeout=setTimeout(()=>{
           res.write(`data: ${JSON.stringify(message)}\n\n`);
-          
-      },counter*100);
+      },counter*1000);
     });
   })
   

@@ -56,6 +56,12 @@ const login =async(req,res)=>{
     }
     if(bcrypt.compareSync(request.password,user.password)){
         var token = jwt.sign(user.toJSON(),process.env.JWT_SECRET,{ expiresIn: 60*60*24*7 });
+        connectedUserModel.findOne({user_id:user._id}).then(result=>{
+            if(result==null){
+                let newConnection= new connectedUserModel({user_id:user._id});
+                newConnection.save();
+            }
+        });
         return res.status(200).json({ message: "User Login Successfull.", user:user.toJSON() , auth:token });
 
     }else{

@@ -22,6 +22,8 @@ io.on('connection',(socket)=>{
       await sendMessage(data).then((response)=>{
         
         response.sockets.forEach((element) => {
+          console.log("socket ",element.socket_id);
+          // .to(element.socket_id)
           io.to(element.socket_id).emit('recived message', {message:response.message,sender:false,sender_name:response.sender});
         });
       }).catch(error=>{
