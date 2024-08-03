@@ -31,8 +31,15 @@ const sendMessage=async(data)=>{
         await chatModel.updateOne({sender_id:sender,receiver_id:receiver},{
             $push:{
                 messages:{
-                    message,
-                    sender:true
+                    $each:[
+                        {
+                            message,
+                            sender_name:`${sender_details.first_name} ${sender_details.last_name}`,
+                            sender:true
+                        }
+                    ],
+                    $position:0
+                    
                 }
             }
         });
@@ -43,6 +50,7 @@ const sendMessage=async(data)=>{
             messages:[
                 {
                     message,
+                    sender_name:`${sender_details.first_name} ${sender_details.last_name}`,
                     sender:true
                 }
             ]
@@ -53,8 +61,14 @@ const sendMessage=async(data)=>{
         await chatModel.updateOne({sender_id:receiver,receiver_id:sender},{
             $push:{
                 messages:{
-                    message,
-                    sender:false
+                    $each:[
+                        {
+                            message,
+                            sender_name:`${sender_details.first_name} ${sender_details.last_name}`,
+                            sender:false
+                        }
+                    ],
+                    $position:0
                 }
             }
         });
@@ -65,6 +79,7 @@ const sendMessage=async(data)=>{
             messages:[
                 {
                     message,
+                    sender_name:`${sender_details.first_name} ${sender_details.last_name}`,
                     sender:false
                 }
             ]
@@ -76,9 +91,10 @@ const sendMessage=async(data)=>{
         throw new Error(err);
     });
 }
+
 module.exports={
     make_online,
     make_offline,
     connection_details,
-    sendMessage
+    sendMessage,
 }

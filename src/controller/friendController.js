@@ -4,6 +4,7 @@ const {userModel}=require("../model/userModel");
 const { ObjectId } = require('mongodb');
 const validator = require('validator');
 const {decrypt} = require("../helper/asyncDecrypt");
+const {chatModel}=require("../model/chatModel");
 
 /**
  * Handles the logic for sending a friend request to another user.
@@ -202,25 +203,40 @@ const handleFriendRequest = async (req, res) => {
     return res.status(500).json({ message: error.message });
   }
 };
-const getConnectionDetails=async(req,res)=>{
-  const user_id=req.user._id;
-  try{
-    const userDetails=await userModel.findById(user_id).exec()
-    .then((res)=>{
-         return res;
-     })
-    .catch((error)=>{
-        
-         throw new Error("User not found");
-     });
-    return res.status(200).json({data:userDetails.toJSON(),success:true});
-  }catch(error){
-      return res.status(404).json({message:error.message,success:false});
+
+
+const oldMessages=async(req,res)=>{
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  const sender_id=req.params.sender;
+  const receiver_id=req.params.receiver;
+  const chat_of_user=await chatModel.find({sender_id,receiver_id});
+  let counter=1;
+  let timeout;
+  if(chat_of_user.length==0){
+      return res.end();
   }
+  chat_of_user.forEach((messageGroup)=>{
+    counter+=1;
+    messageGroup.messages.forEach((message)=>{
+      timeout=setTimeout(()=>{
+          res.write(`data: ${JSON.stringify(message)}\n\n`);
+          
+      },counter*100);
+    });
+  })
+  
+  res.on('close', () => {
+      console.log('connection closed');
+      clearTimeout(timeout);
+      res.end();
+  });
 }
 
 module.exports={
     sendFriendRequest,
     handleFriendRequest,
-    getConnectionDetails
+    oldMessages
+
 }

@@ -5,6 +5,7 @@ const crypto = require('crypto');
 const userRegistration=require('./controller/userRegistrationController');
 const authUserRouter=require('./router/authUserRoutes');
 const userController=require('./controller/userController');
+const friendController=require('./controller/friendController');
 const { register } = require('module');
 const { log } = require('console');
 const app=express();
@@ -17,6 +18,8 @@ app.use(bodyParser.json({
 app.use(cors());
 app.post('/registration',userRegistration.registration);
 app.post('/login',userRegistration.login);
+app.get('/old-message/:sender/:receiver',friendController.oldMessages);
+
 
 // const { publicKey, privateKey } = crypto.generateKeyPairSync('rsa', {
 //     modulusLength: 2048,

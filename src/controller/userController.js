@@ -27,12 +27,27 @@ const alluser=async(req,res)=>{
         }
     ]).skip(limit).limit(perpage).exec();
     if(user.length==0){
-        return res.status(410).json({'message':'No data found',user,'success':false});
+        return res.status(406).json({'message':'No data found',user,'success':false});
     }else{
         return res.status(200).json({'user':user,'success':true});
     }
 }
-
+const getConnectionDetails=async(req,res)=>{
+    const user_id=req.user._id;
+    try{
+      const userDetails=await userModel.findById(user_id).exec()
+      .then((res)=>{
+           return res;
+       })
+      .catch((error)=>{
+          
+           throw new Error("User not found");
+       });
+      return res.status(200).json({data:userDetails.toJSON(),success:true});
+    }catch(error){
+        return res.status(404).json({message:error.message,success:false});
+    }
+  }
 const dashboard=async(req,res)=>{
     console.log(req.socket.remoteAddress);
     return res.status(200).send({message:"At dashboard after auth"});
@@ -42,5 +57,6 @@ const dashboard=async(req,res)=>{
 
 module.exports={
     alluser,
-    dashboard
+    dashboard,
+    getConnectionDetails
 }
