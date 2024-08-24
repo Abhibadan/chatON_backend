@@ -36,16 +36,13 @@ const getConnectionDetails=async(req,res)=>{
     const user_id=req.user._id;
     try{
       const userDetails=await userModel.findById(user_id).exec()
-      .then((res)=>{
-           return res;
-       })
-      .catch((error)=>{
-          
-           throw new Error("User not found");
-       });
-      return res.status(200).json({data:userDetails.toJSON(),success:true});
-    }catch(error){
+      if(userDetails){
+        return res.status(200).json({data:userDetails.toJSON(),success:true});
+      }else{
         return res.status(404).json({message:error.message,success:false});
+      }
+    }catch(error){
+        return res.status(500).json({message:error.message,success:false});
     }
   }
 const dashboard=async(req,res)=>{
