@@ -121,9 +121,10 @@ const sendFriendRequest = async (req, res) => {
  */
 const handleFriendRequest = async (req, res) => {
   const user = req.user;
-  const { request } = req.body;
+  // const { request } = req.body;
   try {
-    const { friend_id, handle } = JSON.parse(decrypt(request));
+    // const { friend_id, handle } = JSON.parse(decrypt(request));
+    const { friend_id, handle } = req.body;
     if (friend_id == undefined) {
       return res
         .status(422)
@@ -204,6 +205,53 @@ const handleFriendRequest = async (req, res) => {
   }
 };
 
+const friendList=async(req,res)=>{
+  let {page=1,limit=50,status='accepted',order_by="time",order_type=1}=req.query;
+  page=Number(page);
+  limit=Number(limit);
+  
+  const skip=(page-1)*limit;
+  const user=req.user; 
+  let pipeline=[
+    {$match:{_id:user._id}},
+    {$unwind:'$friendList'},
+    {$sort:{'friendList.created_at':Number(order_type)}}
+  ]
+  if(status!='all'){
+    pipeline.push({$match:{'friendList.status':status}});
+  }
+  pipeline.push({$lookup:{
+    from:'users',
+    localField:'friendList.user_id',
+    foreignField:'_id',
+    as:'friends'
+  }});
+
+  if(order_by=="time"){
+    pipeline.push({$sort:{'friendList.created_at':Number(order_type)}});
+  }if(order_by=="name"){
+    pipeline.push({$sort:{'friends.first_name':Number(order_type)}});
+  }
+  pipeline.push(
+    {$skip:skip},
+    {$limit:limit},
+  {
+    $project:{
+      _id:0,
+      first_name:{$first:'$friends.first_name'},
+      last_name:{$first:'$friends.last_name'},
+      connected_from:'$friendList.created_at'
+    }
+  })
+  
+  
+  console.log(pipeline);
+  
+  const friends=await userModel.aggregate(
+    pipeline
+  ).exec();
+  return res.status(200).json({data:friends});
+}
 
 const oldMessages=async(req,res)=>{
   res.setHeader('Content-Type', 'text/event-stream');
@@ -237,6 +285,7 @@ const oldMessages=async(req,res)=>{
 module.exports={
     sendFriendRequest,
     handleFriendRequest,
-    oldMessages
+    oldMessages,
+    friendList
 
 }

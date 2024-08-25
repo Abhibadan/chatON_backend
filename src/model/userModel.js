@@ -10,6 +10,10 @@ const friendSchema=new mongoose.Schema({
         type:String,
         enum:['connected','requested','pending','accepted','blocked','blocked_by_friend'],
         default:'requested',
+    },
+    created_at:{
+        type:Date,
+        default:Date.now
     }
 },{_id:false});
 const userSchema=new mongoose.Schema({
@@ -34,7 +38,7 @@ const userSchema=new mongoose.Schema({
         required:true,
     },
     friendList:{
-        type:["friendSchema"],
+        type:[friendSchema],
         default:[],
     }
     
@@ -45,9 +49,9 @@ const userSchema=new mongoose.Schema({
 //   });
 
 userSchema.set('toJSON', {
-    transform: function (doc, ret) {
+    transform: function (doc, ret,options) {
       delete ret.password;
-      delete ret.friendList;
+      if (!options?.withfriends) delete ret.friendList;
       delete ret.__v;
       return ret;
     }
