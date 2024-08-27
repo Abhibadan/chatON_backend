@@ -213,7 +213,7 @@ const handleFriendRequest = async (req, res) => {
             .exec();
           throw new Error("Friend not found");
         } else {
-          userModelconst { friend_id, handle } = JSON.parse(decrypt(request));
+          userModel
             .updateOne(
               { _id: user._id, friendList: { $elemMatch: { user_id: ObjectId.createFromHexString(friend_id) } } },
               { $set: { "friendList.$[element].status": handle_user } },
