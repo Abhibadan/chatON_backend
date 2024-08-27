@@ -25,7 +25,7 @@ const sendFriendRequest = async (req, res) => {
   }
 
   try {
-    const check_friend = await userModel
+    const check_friend=await userModel
       .find({
         _id: friend_id,
         friendList: {
@@ -33,41 +33,38 @@ const sendFriendRequest = async (req, res) => {
             user_id: user._id,
           },
         },
+      }).select({
+        friendList: {
+          $elemMatch: {
+            user_id: user._id,
+          },
+        },
       })
-      .exec()
-      .then((res) => {
-        return res;
-      })
-      .catch((error) => {
-        throw new Error("Friend not found");
-      });
-    if (check_friend.length > 0) {
-      for (let friend of check_friend[0].friendList) {
-        if (friend.user_id.equals(user._id)) {
-          if (friend.status == "requested") {
-            return res
-              .status(400)
-              .json({ message: "Friend request already send" });
-          } else if (friend.status == "accepted") {
-            return res
-              .status(400)
-              .json({ message: "Friend request already accepted" });
-          } else if (friend.status == "pending") {
-            return res
-              .status(400)
-              .json({ message: "Friend request already pending" });
-          } else if (friend.status == "rejected") {
-            return res
-              .status(400)
-              .json({ message: "Friend request already rejected" });
-          } else if (friend.status == "blocked") {
-            return res
-              .status(400)
-              .json({ message: "Your id is by the user blocked" });
-          }
-        }
+      .exec();
+      if (check_friend.length > 0) {
+        if (check_friend[0].friendList[0].status == "accepted") {
+          return res
+            .status(400)
+            .json({ message: "Friend request already accepted" });
+        } else if (check_friend[0].friendList[0].status == "pending") {
+          return res
+            .status(400)
+            .json({ message: "Friend request already pending" });
+        } else if (check_friend[0].friendList[0].status == "requested") {
+          return res
+            .status(400)
+            .json({ message: "Friend request already send" });
+        } else if (check_friend[0].friendList[0].status == "blocked_by_friend") {
+          return res
+            .status(400)
+            .json({ message: "You are blocked by friend" });
+        } else if (check_friend[0].friendList[0].status == "blocked") {
+          return res
+            .status(400)
+            .json({ message: "Unblock user before sending request" });
+        } 
       }
-    }
+    
     const friend = await userModel
       .updateOne(
         { _id: friend_id },
@@ -80,13 +77,7 @@ const sendFriendRequest = async (req, res) => {
           },
         }
       )
-      .exec()
-      .then((res) => {
-        return res;
-      })
-      .catch((error) => {
-        throw new Error("Friend not found");
-      });
+      .exec();
     const user_updated = await userModel
       .updateOne(
         { _id: user._id },
@@ -99,13 +90,7 @@ const sendFriendRequest = async (req, res) => {
           },
         }
       )
-      .exec()
-      .then((res) => {
-        return res;
-      })
-      .catch((error) => {
-        throw new Error("Uriend not found");
-      });
+      .exec();
     res.status(200).json({ message: "Frined request send successfully" });
   } catch (error) {
     return res.status(500).json({ message: error.message });
@@ -119,9 +104,10 @@ const sendFriendRequest = async (req, res) => {
  * @param {Object} req.body.request - The encrypted friend request details.
  * @returns {Promise<Object>} - A JSON response with a success message or an error message.
  */
+
 const handleFriendRequest = async (req, res) => {
   const user = req.user;
-  // const { request } = req.body;
+  const { request } = req.body;
   try {
     // const { friend_id, handle } = JSON.parse(decrypt(request));
     const { friend_id, handle } = req.body;
@@ -131,9 +117,48 @@ const handleFriendRequest = async (req, res) => {
         .json({ message: "Please provide requested friend details" });
     } else if (handle == undefined) {
       return res.status(422).json({ message: "Please provide handle" });
+    }else{
+      console.log("in else");
+      const check_request_status=await userModel
+      .find({ _id: user._id, friendList: { $elemMatch: { user_id: ObjectId.createFromHexString(friend_id) } } })
+      .select({
+        friendList: {
+          $elemMatch: {
+            user_id: user._id,
+          },
+        },
+      }).exec();
+      if(check_request_status.length > 0){
+        if(check_request_status[0].friendList[0].status == "accepted"){
+          return res
+            .status(400)
+            .json({ message: "Friend request already accepted" });
+        }else if(check_request_status[0].friendList[0].status != "pending"){
+          return res
+          .status(400)
+          .json({ message: "Friend request is pending" });
+        }else if(check_request_status[0].friendList[0].status != "requested"){
+          return res
+          .status(400)
+          .json({ message: "Friend request is already accepted" });
+        }else if(check_request_status[0].friendList[0].status != "blocked_by_friend"){
+          return res
+          .status(400)
+          .json({ message: "Friend request is already accepted" });
+        }else if(check_request_status[0].friendList[0].status != "blocked"){
+          return res
+          .status(400)
+          .json({ message: "Friend request is already accepted" });
+
+        }
+      }else{
+        return res.status(406).json({ message: "No request exists from this user" });
+      }
+      
     }
     let handle_user = handle;
     let handle_friend;
+
     if (handle_user == "accepted") {
       handle_friend = handle_user;
     } else if (handle_user == "blocked") {
@@ -141,70 +166,78 @@ const handleFriendRequest = async (req, res) => {
     } else if (handle_user == "connected") {
       handle_friend = handle_user;
     } else if (handle_user == "rejected") {
-      const friend = await userModel
-        .updateOne(
-          { _id: friend_id },
-          { $pull: { friendList: { user_id: user._id } } }
-        )
-        .exec()
-        .then((res) => {
-          return res;
-        })
-        .catch((error) => {
-          throw new Error("Friend not found");
-        });
-      const user_updated = await userModel
-        .updateOne(
-          { _id: user._id },
-          { $pull: { friendList: { user_id: ObjectId.createFromHexString(friend_id) } } }
-        )
-        .exec()
-        .then((res) => {
-          return res;
-        })
-        .catch((error) => {
-          throw new Error("User not found");
-        });
-      return res.status(200).json({ message: "Removed From frined list" });
+      try {
+        await userModel
+          .updateOne(
+            { _id: friend_id, friendList: { $elemMatch: { user_id: user._id } } },
+            { $pull: { friendList: { user_id: user._id } } }
+          )
+          .exec()
+          .then((res) => {
+            userModel
+              .updateOne(
+                { _id: user._id, friendList: { $elemMatch: { user_id: ObjectId.createFromHexString(friend_id) } } },
+                { $pull: { friendList: { user_id: ObjectId.createFromHexString(friend_id) } } }
+              )
+              .exec();
+            if (res.modifiedCount == 0) {
+              throw new Error("Friend not found");
+            }
+          })
+          .catch((error) => {
+            throw new Error(error.message);
+          });
+        return res.status(200).json({ message: "Removed From frined list" });
+      } catch (error) {
+        return res.status(400).json({ message: error.message });
+      }
+      // return res.status(200).json({ message: "Removed From frined list" });
     }
-    const friend = await userModel
+
+
+
+    await userModel
       .updateOne(
-        { _id: friend_id },
+        { _id: friend_id, friendList: { $elemMatch: { user_id: user._id } } },
         { $set: { "friendList.$[element].status": handle_friend } },
         { arrayFilters: [{ "element.user_id": user._id }] }
       )
       .exec()
-      .then((res) => {
-        return res;
-      })
-      .catch((error) => {
-        throw new Error("Friend not found");
-      });
-    const user_updated = await userModel
-      .updateOne(
-        { _id: user._id },
-        { $set: { "friendList.$[element].status": handle_user } },
-        {
-          arrayFilters: [
-            { "element.user_id": ObjectId.createFromHexString(friend_id) },
-          ],
+      .then(async (response) => {
+        if (response.modifiedCount == 0) {
+          userModel
+            .updateOne(
+              { _id: user._id, friendList: { $elemMatch: { user_id: ObjectId.createFromHexString(friend_id) } } },
+              { $pull: { friendList: { user_id: ObjectId.createFromHexString(friend_id) } } }
+            )
+            .exec();
+          throw new Error("Friend not found");
+        } else {
+          userModelconst { friend_id, handle } = JSON.parse(decrypt(request));
+            .updateOne(
+              { _id: user._id, friendList: { $elemMatch: { user_id: ObjectId.createFromHexString(friend_id) } } },
+              { $set: { "friendList.$[element].status": handle_user } },
+              {
+                arrayFilters: [
+                  { "element.user_id": ObjectId.createFromHexString(friend_id) },
+                ],
+              }
+            )
+            .exec();
         }
-      )
-      .exec()
-      .then((res) => {
-        return res;
+        return res
+          .status(200)
+          .json({ message: "Frined status updated successfully" });
       })
       .catch((error) => {
-        throw new Error("User not found");
+        return res
+          .status(404)
+          .json({ message: error.message });
       });
-    return res
-      .status(200)
-      .json({ message: "Frined status updated successfully" });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
 };
-
 const friendList=async(req,res)=>{
   let {page=1,limit=50,status='accepted',order_by="time",order_type=1}=req.query;
   page=Number(page);
