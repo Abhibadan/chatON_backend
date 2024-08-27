@@ -239,11 +239,11 @@ const handleFriendRequest = async (req, res) => {
   }
 };
 const friendList=async(req,res)=>{
-  let {page=1,limit=50,status='accepted',order_by="time",order_type=1}=req.query;
+  let {page=1,per_page=50,status='accepted',order_by="time",order_type=1}=req.query;
   page=Number(page);
-  limit=Number(limit);
+  per_page=Number(per_page);
   
-  const skip=(page-1)*limit;
+  const skip=(page-1)*per_page;
   const user=req.user; 
   let pipeline=[
     {$match:{_id:user._id}},
@@ -267,7 +267,7 @@ const friendList=async(req,res)=>{
   }
   pipeline.push(
     {$skip:skip},
-    {$limit:limit},
+    {$limit:per_page},
   {
     $project:{
       _id:0,
@@ -277,13 +277,15 @@ const friendList=async(req,res)=>{
     }
   })
   
-  
-  console.log(pipeline);
-  
   const friends=await userModel.aggregate(
     pipeline
   ).exec();
-  return res.status(200).json({data:friends});
+  if(friends.length==0){
+    return res.status(204).json({data:'No friends forund'});
+  }else{
+    return res.status(200).json({data:friends,page,per_page});
+
+  }
 }
 
 const oldMessages=async(req,res)=>{
